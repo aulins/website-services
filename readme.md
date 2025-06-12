@@ -91,7 +91,7 @@ class User extends CI_Controller {
 
 1. buka /application/config/database.php:
 
-$db['default'] = array(
+```$db['default'] = array(
     'dsn'   => '',
     'hostname' => 'localhost',
     'username' => 'root',
@@ -104,9 +104,151 @@ $db['default'] = array(
     ...
 );
 
-
+```
 # Routing halaman awal
 
 1. Buka: /application/config/routes.php:
-
+```
 $route['default_controller'] = 'user';
+```
+# Halaman Login Admin
+
+Admin bisa login menggunakan username & password
+Hanya admin yang bisa mengakses halaman dashboard
+Data login disimpan di tabel tb_users
+
+## Buat view form login
+application/views/auth/login.php:
+
+<div class="row justify-content-center">
+  <div class="col-md-4">
+    <h3 class="text-center">Login Admin</h3>
+    <?php if ($this->session->flashdata('error')): ?>
+
+      <div class="alert alert-danger"><?= $this->session->flashdata('error') ?></div>
+    <?php endif; ?>
+    <form method="post" action="<?= base_url('auth/login') ?>">
+      <div class="mb-3">
+        <label for="username">Username</label>
+        <input type="text" class="form-control" name="username" required>
+      </div>
+      <div class="mb-3">
+        <label for="password">Password</label>
+        <input type="password" class="form-control" name="password" required>
+      </div>
+      <button type="submit" class="btn btn-primary w-100">Login</button>
+    </form>
+
+  </div>
+</div>
+
+## Buatk controller auth.php
+
+application/controllers/Auth.php:
+
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+
+class Auth extends CI_Controller {
+
+  public function __construct() {
+    parent::__construct();
+    $this->load->model('User_model');
+    $this->load->library('session');
+  }
+
+  public function index() {
+    $this->load->view('templates/header', ['title' => 'Login']);
+    $this->load->view('auth/login');
+    $this->load->view('templates/footer');
+  }
+
+  public function login() {
+    $username = $this->input->post('username');
+    $password = $this->input->post('password');
+    $user = $this->User_model->get_by_username($username);
+
+    if ($user && password_verify($password, $user->password)) {
+      $this->session->set_userdata('user_id', $user->user_id);
+      redirect('admin');
+    } else {
+      $this->session->set_flashdata('error', 'Username atau Password salah!');
+      redirect('auth');
+    }
+  }
+
+  public function logout() {
+    $this->session->sess_destroy();
+    redirect('auth');
+  }
+}
+
+## buat model user_model.php
+application/models/User_model.php:
+
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+
+class User_model extends CI_Model {
+
+  public function get_by_username($username) {
+    return $this->db->get_where('tb_users', ['username' => $username])->row();
+  }
+}
+
+
+## tambahkan admin dummy ke database
+Buka phpMyAdmin, jalankan query ini:
+
+INSERT INTO tb_users (username, password)
+VALUES ('admin', '$2y$10$GpZKcLskHZutTD5boIRfV.CraV.rEB53erVrxCjVR59dJD72HJ82G'); 
+
+Password-nya adalah: admin123
+(Dienkripsi dengan password_hash())
+
+## routing
+
+application/config/routes.php:
+Tambahkan ini:
+
+$route['login'] = 'auth/index';
+$route['logout'] = 'auth/logout';
+
+
+## hasil
+Buka http://localhost/website_services/login
+
+Masukkan:
+Username: admin
+Password: admin123
+>> akan error kalau .htaccess nya belumm dibuat :http://localhost/website_services/index.php/login
+
+## hilangkan index.php
+
+1. bikin file di root folder : .htaccess
+
+2. isi dengan :
+
+RewriteEngine On
+RewriteBase /website_services/
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php/$1 [L]
+
+
+3. edit file application/config/config.php:
+
+cari baris : 
+$config['index_page'] = 'index.php';
+
+ubah:
+$config['index_page'] = '';
+
+
+4. Pastikan Apache mod_rewrite Aktif
+Buka XAMPP → Config (Apache) → httpd.conf
+
+Pastikan baris berikut tidak dikomentari (tidak ada # di depannya):
+LoadModule rewrite_module modules/mod_rewrite.so
+
+Simpan file dan restart Apache dari XAMPP Control Panel
