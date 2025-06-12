@@ -252,3 +252,15 @@ Pastikan baris berikut tidak dikomentari (tidak ada # di depannya):
 LoadModule rewrite_module modules/mod_rewrite.so
 
 Simpan file dan restart Apache dari XAMPP Control Panel
+
+
+# masalah login salah password
+
+1. bikin file hash.php di root folder isi hash.php:
+
+<?php
+echo password_hash('admin123', PASSWORD_DEFAULT);
+
+2. jalankan : http://localhost/website_services/hash.php
+
+3. kemudian masukkan copy hasil nya dan edit password di table mysql
