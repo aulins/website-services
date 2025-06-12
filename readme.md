@@ -405,3 +405,197 @@ application/views/admin/dashboard.php:
 ## hasil
 
 akses: http://localhost/website_services/admin
+
+# fitur CRUD katalog admin
+
+Admin dapat:
+
+Melihat daftar katalog jasa
+Menambah katalog
+Mengedit katalog
+Menghapus katalog
+
+## struktur folder:
+
+application/
+├── controllers/
+│ └── Catalogue.php ← controller CRUD katalog
+├── models/
+│ └── Catalogue_model.php ← model untuk akses db
+├── views/
+│ └── admin/
+│ ├── katalog_list.php ← daftar katalog
+│ └── katalog_form.php ← form tambah/edit katalog
+
+## buat model Catalogue_model.php
+
+application/models/Catalogue_model.php:
+
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+
+class Catalogue_model extends CI_Model {
+
+  public function get_all() {
+    return $this->db->order_by('created_at', 'DESC')->get('tb_catalogues')->result();
+  }
+
+  public function get($id) {
+    return $this->db->get_where('tb_catalogues', ['catalogue_id' => $id])->row();
+  }
+
+  public function insert($data) {
+    return $this->db->insert('tb_catalogues', $data);
+  }
+
+  public function update($id, $data) {
+    return $this->db->where('catalogue_id', $id)->update('tb_catalogues', $data);
+  }
+
+  public function delete($id) {
+    return $this->db->delete('tb_catalogues', ['catalogue_id' => $id]);
+  }
+}
+
+## buat controller Catalogue.php
+application/controllers/Catalogue.php:
+
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+
+class Catalogue extends CI_Controller {
+
+  public function __construct() {
+    parent::__construct();
+    if (!$this->session->userdata('user_id')) {
+      redirect('login');
+    }
+    $this->load->model('Catalogue_model');
+  }
+
+  public function index() {
+    $data['title'] = 'Kelola Katalog';
+    $data['catalogues'] = $this->Catalogue_model->get_all();
+    $this->load->view('templates/admin_header', $data);
+    $this->load->view('admin/katalog_list', $data);
+    $this->load->view('templates/admin_footer');
+  }
+
+  public function create() {
+    $data['title'] = 'Tambah Katalog';
+    if ($this->input->post()) {
+      $insert = [
+        'package_name' => $this->input->post('package_name'),
+        'categories'   => $this->input->post('categories'),
+        'description'  => $this->input->post('description'),
+        'price'        => $this->input->post('price'),
+        'status_publish' => $this->input->post('status_publish'),
+        'created_at'   => date('Y-m-d H:i:s')
+      ];
+      $this->Catalogue_model->insert($insert);
+      redirect('catalogue');
+    }
+    $this->load->view('templates/admin_header', $data);
+    $this->load->view('admin/katalog_form');
+    $this->load->view('templates/admin_footer');
+  }
+
+  public function edit($id) {
+    $data['title'] = 'Edit Katalog';
+    $data['katalog'] = $this->Catalogue_model->get($id);
+    if ($this->input->post()) {
+      $update = [
+        'package_name' => $this->input->post('package_name'),
+        'categories'   => $this->input->post('categories'),
+        'description'  => $this->input->post('description'),
+        'price'        => $this->input->post('price'),
+        'status_publish' => $this->input->post('status_publish'),
+      ];
+      $this->Catalogue_model->update($id, $update);
+      redirect('catalogue');
+    }
+    $this->load->view('templates/admin_header', $data);
+    $this->load->view('admin/katalog_form', $data);
+    $this->load->view('templates/admin_footer');
+  }
+
+  public function delete($id) {
+    $this->Catalogue_model->delete($id);
+    redirect('catalogue');
+  }
+}
+
+## buat view katalog_list.php
+application/views/admin/katalog_list.php:
+
+<h3>Daftar Katalog</h3>
+<a href="<?= base_url('catalogue/create') ?>" class="btn btn-primary mb-3">Tambah Katalog</a>
+<table class="table table-bordered">
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>Nama Paket</th>
+      <th>Kategori</th>
+      <th>Harga</th>
+      <th>Status</th>
+      <th>Aksi</th>
+    </tr>
+  </thead>
+  <tbody>
+    <?php $no=1; foreach($catalogues as $row): ?>
+    <tr>
+      <td><?= $no++ ?></td>
+      <td><?= $row->package_name ?></td>
+      <td><?= $row->categories ?></td>
+      <td>Rp <?= number_format($row->price, 0, ',', '.') ?></td>
+      <td><?= $row->status_publish ?></td>
+      <td>
+        <a href="<?= base_url('catalogue/edit/'.$row->catalogue_id) ?>" class="btn btn-sm btn-warning">Edit</a>
+        <a href="<?= base_url('catalogue/delete/'.$row->catalogue_id) ?>" class="btn btn-sm btn-danger" onclick="return confirm('Hapus katalog ini?')">Hapus</a>
+      </td>
+    </tr>
+    <?php endforeach ?>
+  </tbody>
+</table>
+
+## view kalatog_form.php
+
+application/views/admin/katalog_form.php:
+
+<h3><?= $title ?></h3>
+<form method="post">
+  <div class="mb-3">
+    <label>Nama Paket</label>
+    <input type="text" name="package_name" class="form-control" required value="<?= $katalog->package_name ?? '' ?>">
+  </div>
+  <div class="mb-3">
+    <label>Kategori</label>
+    <select name="categories" class="form-control" required>
+      <option value="Toko Online" <?= (isset($katalog) && $katalog->categories == 'Toko Online') ? 'selected' : '' ?>>Toko Online</option>
+      <option value="Perusahaan" <?= (isset($katalog) && $katalog->categories == 'Perusahaan') ? 'selected' : '' ?>>Perusahaan</option>
+      <option value="Custom" <?= (isset($katalog) && $katalog->categories == 'Custom') ? 'selected' : '' ?>>Custom</option>
+    </select>
+  </div>
+  <div class="mb-3">
+    <label>Deskripsi</label>
+    <textarea name="description" class="form-control"><?= $katalog->description ?? '' ?></textarea>
+  </div>
+  <div class="mb-3">
+    <label>Harga</label>
+    <input type="number" name="price" class="form-control" required value="<?= $katalog->price ?? '' ?>">
+  </div>
+  <div class="mb-3">
+    <label>Status Publish</label>
+    <select name="status_publish" class="form-control" required>
+      <option value="Y" <?= (isset($katalog) && $katalog->status_publish == 'Y') ? 'selected' : '' ?>>Y</option>
+      <option value="N" <?= (isset($katalog) && $katalog->status_publish == 'N') ? 'selected' : '' ?>>N</option>
+    </select>
+  </div>
+  <button class="btn btn-success">Simpan</button>
+</form>
+
+## testing
+
+Akses: http://localhost/website_services/catalogue
+Tambah, edit, hapus katalog
+Data langsung masuk ke tabel tb_catalogues
