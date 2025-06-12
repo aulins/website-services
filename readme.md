@@ -264,3 +264,144 @@ echo password_hash('admin123', PASSWORD_DEFAULT);
 2. jalankan : http://localhost/website_services/hash.php
 
 3. kemudian masukkan copy hasil nya dan edit password di table mysql
+
+
+# halaman dashboard admin
+
+Sidebar kiri: navigasi admin (Dashboard, Katalog, Pesanan, Laporan, Ulasan)
+Ringkasan pesanan selesai & pendapatan bulan ini
+(opsional nanti) Chart statistik sederhana
+
+## struktur folder
+application/
+├── controllers/
+│   └── Admin.php
+├── views/
+│   ├── admin/
+│   │   └── dashboard.php
+│   ├── templates/
+│   │   ├── admin_header.php
+│   │   └── admin_footer.php
+
+## buat template header admin
+application/views/templates/admin_header.php:
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title><?= $title ?? 'Admin Dashboard' ?></title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      display: flex;
+    }
+    aside {
+      width: 220px;
+      min-height: 100vh;
+      background: #f8f9fa;
+    }
+    main {
+      flex: 1;
+      padding: 20px;
+    }
+    .nav-link.active {
+      font-weight: bold;
+      color: #0d6efd !important;
+    }
+  </style>
+</head>
+<body>
+  <aside class="p-3">
+    <h4>Admin Panel</h4>
+    <nav class="nav flex-column">
+      <a class="nav-link <?= uri_string() == 'admin' ? 'active' : '' ?>" href="<?= base_url('admin') ?>">Dashboard</a>
+      <a class="nav-link" href="#">Katalog</a>
+      <a class="nav-link" href="#">Pesanan</a>
+      <a class="nav-link" href="#">Laporan</a>
+      <a class="nav-link" href="#">Ulasan</a>
+      <a class="nav-link text-danger" href="<?= base_url('logout') ?>">Logout</a>
+    </nav>
+  </aside>
+  <main>
+
+## buat template footer admin
+
+application/views/templates/admin_footer.php:
+
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+
+## buat controller Admin.php
+
+application/controllers/Admin.php:
+
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+
+class Admin extends CI_Controller {
+
+  public function __construct() {
+    parent::__construct();
+    if (!$this->session->userdata('user_id')) {
+      redirect('login');
+    }
+
+    $this->load->database();
+  }
+
+  public function index() {
+    // Jumlah pesanan selesai bulan ini
+    $this->db->where('status', 'completed');
+    $this->db->where('MONTH(created_at)', date('m'));
+    $this->db->where('YEAR(created_at)', date('Y'));
+    $pesanan_selesai = $this->db->count_all_results('tb_orders');
+
+    // Total pendapatan bulan ini
+    $this->db->select_sum('tb_catalogues.price');
+    $this->db->from('tb_orders');
+    $this->db->join('tb_catalogues', 'tb_catalogues.catalogue_id = tb_orders.catalogue_id');
+    $this->db->where('tb_orders.status', 'completed');
+    $this->db->where('MONTH(tb_orders.created_at)', date('m'));
+    $this->db->where('YEAR(tb_orders.created_at)', date('Y'));
+    $result = $this->db->get()->row();
+
+    $pendapatan = $result->price ?? 0;
+
+    $data['title'] = 'Dashboard Admin';
+    $data['pesanan_selesai'] = $pesanan_selesai;
+    $data['pendapatan'] = $pendapatan;
+
+    $this->load->view('templates/admin_header', $data);
+    $this->load->view('admin/dashboard', $data);
+    $this->load->view('templates/admin_footer');
+  }
+}
+
+## buat view dashboard.php
+application/views/admin/dashboard.php:
+
+<h2>Ringkasan dan Statistik Pesanan</h2>
+
+<div class="row my-4">
+  <div class="col-md-6">
+    <div class="bg-primary text-white p-4 rounded">
+      <h5>Pesanan Selesai Bulan Ini</h5>
+      <h2><?= $pesanan_selesai ?></h2>
+
+    </div>
+
+  </div>
+  <div class="col-md-6">
+    <div class="bg-success text-white p-4 rounded">
+      <h5>Total Pendapatan Bulan Ini</h5>
+      <h2>Rp <?= number_format($pendapatan, 0, ',', '.') ?></h2>
+    </div>
+  </div>
+</div>
+
+## hasil
+
+akses: http://localhost/website_services/admin
