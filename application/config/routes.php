@@ -63,5 +63,6 @@ $route['user/katalog'] = 'user/katalog';
 $route['reportadmin'] = 'reportadmin/index';
 $route['reportadmin/download_report'] = 'reportadmin/download_report';
 $route['reviewadmin/approve/(:num)'] = 'reviewadmin/approve/$1';
+$route['contact'] = 'contact/index';
 $route['404_override'] = '';
 $route['translate_uri_dashes'] = FALSE;

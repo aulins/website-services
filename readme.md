@@ -1455,3 +1455,85 @@ http://localhost/website_services/reportadmin
 
 Pilih rentang tanggal → tampilkan laporan
 Coba download laporan (format CSV)
+
+# Halaman Kontak
+
+Menampilkan informasi kontak (nama website, nomor telepon, email, alamat, dll) yang disimpan di tabel tb_settings.
+Konten ini bisa ditampilkan di halaman kontak pada frontend.
+
+## struktur folder
+
+application/
+├── controllers/
+│ └── Contact.php ← controller untuk halaman kontak
+├── views/
+│ └── user/
+│ └── contact.php ← halaman kontak pengguna
+
+## buat controller application/controllers/Contact.php:
+
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+
+class Contact extends CI_Controller {
+
+  public function __construct() {
+    parent::__construct();
+    $this->load->model('Settings_model');
+  }
+
+  public function index() {
+    $data['title'] = 'Kontak Kami';
+    $data['settings'] = $this->Settings_model->get_settings();
+
+    $this->load->view('templates/header', $data);
+    $this->load->view('user/contact', $data);
+    $this->load->view('templates/footer');
+  }
+}
+
+## buat model application/models/Settings_model.php:
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+
+class Settings_model extends CI_Model {
+
+  public function get_settings() {
+    return $this->db->get('tb_settings')->row(); // Ambil data settings
+  }
+}
+
+
+## buat application/views/user/contact.php:
+<h2>Kontak Kami</h2>
+
+<div class="card">
+  <div class="card-body">
+    <h5 class="card-title"><?= $settings->website_name ?></h5>
+
+    <p><strong>Telepon:</strong> <?= $settings->phone_number1 ?></p>
+    <p><strong>Email:</strong> <?= $settings->email1 ?></p>
+    <p><strong>Alamat:</strong> <?= $settings->address ?></p>
+    <p><strong>Map:</strong> <?= $settings->maps ?></p>
+
+    <?php if ($settings->logo): ?>
+      <img src="<?= base_url('uploads/' . $settings->logo) ?>" alt="Logo" class="img-fluid">
+    <?php endif; ?>
+
+  </div>
+</div>
+
+## tambahkan routing application/config/routes.php:
+
+```$route['contact'] = 'contact/index';
+
+```
+
+## pastikan data kontak ada di mysql
+
+INSERT INTO `tb_settings` (`website_name`, `phone_number1`, `email1`, `address`, `maps`, `logo`)
+VALUES ('Website XYZ', '1234567890', 'contact@xyz.com', 'Street XYZ', 'Google Map', 'logo.png');
+
+## testing
+
+http://localhost/website_services/contact
