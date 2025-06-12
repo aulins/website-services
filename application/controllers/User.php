@@ -12,4 +12,11 @@ class User extends CI_Controller {
         $this->load->view('user/home');
         $this->load->view('templates/footer');
     }
+    public function katalog() {
+        $data['catalogues'] = $this->db->get('tb_catalogues')->result(); // Ambil data katalog
+        $this->load->view('templates/header');
+        $this->load->view('user/katalog', $data);  // Pastikan data dikirim ke view
+        $this->load->view('templates/footer');
+    }      
 }
+

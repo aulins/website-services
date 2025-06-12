@@ -59,6 +59,7 @@ $route['orderadmin/update_status/(:num)'] = 'orderadmin/update_status/$1';
 $route['review/create'] = 'review/create';
 $route['review/store']  = 'review/store';
 $route['reviewadmin']   = 'reviewadmin/index';
+$route['user/katalog'] = 'user/katalog';
 $route['reviewadmin/approve/(:num)'] = 'reviewadmin/approve/$1';
 $route['404_override'] = '';
 $route['translate_uri_dashes'] = FALSE;

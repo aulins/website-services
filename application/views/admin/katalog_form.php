@@ -1,5 +1,5 @@
 <h3><?= $title ?></h3>
-<form method="post">
+<form method="post" enctype="multipart/form-data">
     <div class="mb-3">
         <label>Nama Paket</label>
         <input type="text" name="package_name" class="form-control" required value="<?= $katalog->package_name ?? '' ?>">
@@ -43,5 +43,13 @@
         <option value="N" <?= (isset($katalog) && $katalog->status_publish == 'N') ? 'selected' : '' ?>>N</option>
         </select>
     </div>
+    <div class="mb-3">
+        <label>Gambar (opsional)</label>
+        <input type="file" name="image" class="form-control">
+        <?php if (isset($katalog->image) && $katalog->image): ?>
+            <img src="<?= base_url('uploads/catalogue/'.$katalog->image) ?>" alt="gambar" width="120" class="mt-2">
+        <?php endif ?>
+    </div>
+
     <button class="btn btn-success">Simpan</button>
 </form>

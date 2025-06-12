@@ -1115,3 +1115,173 @@ Jika berhasil:
 ✅ Ulasan tersimpan
 ✅ Admin bisa menyetujui
 ✅ Disiapkan untuk ditampilkan ke halaman user (fitur berikutnya)
+
+# menampilkan ulasan di LP
+
+## strukrur folder
+
+application/
+├── controllers/
+│ └── User.php ← controller landing page
+├── views/
+│ └── user/
+│ └── home.php ← landing page user
+
+## menambahkan query review di controller
+
+$this->load->model('Review_model');
+$data['reviews'] = $this->Review_model->get_approved();
+
+JADI:
+public function index() {
+$data['title'] = 'Beranda';
+$this->load->model('Review_model');
+$data['reviews'] = $this->Review_model->get_approved();
+
+        $this->load->view('templates/header', $data);
+        $this->load->view('user/home');
+        $this->load->view('templates/footer');
+    }
+
+## Tambahkan Fungsi get_approved() di Review_model
+
+di paling bawah :
+public function get_approved() {
+$this->db->select('r.name, r.rating, r.comment');
+$this->db->from('tb_reviews r');
+$this->db->where('is_approved', 'Y');
+$this->db->order_by('created_at', 'DESC');
+return $this->db->get()->result();
+}
+
+## Tambahkan Kode Ulasan di View home.php
+
+Tambahkan di bagian bawah landing page:
+
+<h3 class="mt-5">Ulasan Pengguna</h3>
+<div class="row">
+  <?php foreach ($reviews as $review): ?>
+    <div class="col-md-4">
+      <div class="border p-3 mb-3 rounded shadow-sm">
+        <strong><?= $review->name ?></strong><br>
+        Rating: <?= str_repeat('⭐', $review->rating) ?><br>
+        <p><?= $review->comment ?></p>
+      </div>
+    </div>
+  <?php endforeach; ?>
+</div>
+
+## testing
+
+http://localhost/website_services/
+
+# upload dan tampilkan gambar katalog
+
+Admin bisa upload gambar saat tambah/edit katalog
+Gambar disimpan di uploads/catalogue/
+Gambar tampil di halaman katalog pengguna
+
+## stuktur folder yang digunakna
+
+application/
+├── controllers/
+│ └── Catalogue.php
+├── views/
+│ ├── admin/katalog_form.php ← tambah upload
+│ └── user/katalog.php ← tampilkan gambar katalog
+uploads/
+└── catalogue/ ← folder simpan gambar katalog
+
+## Perbarui Controller Catalogue.php → Tambah Upload Gambar
+
+📍 Method create() dan edit():
+Tambahkan di dalam if ($this->input->post()):
+
+$config['upload_path']   = './uploads/catalogue/';
+$config['allowed_types'] = 'jpg|jpeg|png';
+$config['max_size']      = 2048;
+$config['file_name'] = time() . '\_' . $\_FILES['image']['name'];
+
+$this->load->library('upload', $config);
+
+$image = null;
+if (!empty($\_FILES['image']['name'])) {
+if ($this->upload->do_upload('image')) {
+$image = $this->upload->data('file_name');
+} else {
+$this->session->set_flashdata('error', $this->upload->display_errors());
+redirect(current_url());
+}
+}
+
+Lalu tambahkan image ke data $insert atau $update:
+di method create setelah baris data $insert = []
+
+if ($image) $insert['image'] = $image;
+if ($image) $update['image'] = $image;
+
+## Perbarui Form View katalog_form.php
+
+📄 application/views/admin/katalog_form.php
+Tambahkan enctype dan field upload:
+
+<form method="post" enctype="multipart/form-data">
+
+tambahkan input:
+
+<div class="mb-3">
+  <label>Gambar (opsional)</label>
+  <input type="file" name="image" class="form-control">
+  <?php if (isset($katalog->image) && $katalog->image): ?>
+    <img src="<?= base_url('uploads/catalogue/'.$katalog->image) ?>" alt="gambar" width="120" class="mt-2">
+  <?php endif ?>
+</div>
+
+## Tampilkan Gambar di Halaman Katalog Pengguna
+
+📄 application/views/user/katalog.php
+Di dalam loop daftar katalog:
+
+<h2>Daftar Katalog</h2>
+
+<div class="row">
+  <?php foreach ($catalogues as $k): ?>
+    <div class="col-md-4">
+      <div class="card mb-3">
+        <?php if ($k->image): ?>
+          <img src="<?= base_url('uploads/catalogue/'.$k->image) ?>" class="card-img-top" alt="<?= $k->package_name ?>">
+        <?php endif ?>
+        <div class="card-body">
+          <h5 class="card-title"><?= $k->package_name ?></h5>
+          <p><?= $k->description ?></p>
+          <p><strong>Rp <?= number_format($k->price, 0, ',', '.') ?></strong></p>
+        </div>
+      </div>
+    </div>
+  <?php endforeach; ?>
+</div>
+
+✅ PASTIKAN FOLDER UPLOAD
+📂 uploads/catalogue/ harus sudah ada dan writeable (chmod 755 / 777 jika perlu)
+
+## tambahkan di controller/User.php:
+
+public function katalog() {
+$data['catalogues'] = $this->db->get('tb_catalogues')->result(); // Ambil data katalog
+$this->load->view('templates/header');
+$this->load->view('user/katalog', $data); // Pastikan data dikirim ke view
+$this->load->view('templates/footer');
+}
+
+## routing
+
+Pastikan routing di application/config/routes.php sudah ada:
+
+$route['user/katalog'] = 'user/katalog'; // Sesuaikan dengan controller dan method kamu
+
+## testing
+
+Tambah katalog baru → upload gambar → Submit
+Cek folder uploads/catalogue/
+Lihat halaman katalog user di:
+http://localhost/website_services/user/katalog
