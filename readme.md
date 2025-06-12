@@ -1650,3 +1650,100 @@ cursor: pointer;
 document.getElementById("menu-toggle").addEventListener("click", function () {
 document.querySelector(".sidebar").classList.toggle("active");
 });
+
+# untuk menampilkan halaman di side bar cukup nama belakang nya aja
+
+<a class="nav-link" href="reviewadmin">Ulasan</a>
+
+# tampilkan katalog di LP
+
+## update controller/User.php:
+
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+
+class User extends CI_Controller {
+
+    public function __construct() {
+        parent::__construct();
+        // Memanggil model Catalogue_model untuk mengelola katalog
+        $this->load->model('Catalogue_model');
+        $this->load->model('Review_model');
+    }
+
+    // Menampilkan halaman utama (landing page)
+    public function index() {
+        $data['title'] = 'Beranda';
+        
+        // Mendapatkan data katalog dari model
+        $data['catalogues'] = $this->Catalogue_model->get_all();  // Ambil semua data katalog
+        $data['reviews'] = $this->Review_model->get_approved();  // Ambil ulasan yang disetujui
+
+        // Memuat header, konten utama, dan footer
+        $this->load->view('templates/header', $data);
+        $this->load->view('user/home', $data); // Pass data untuk halaman home
+        $this->load->view('templates/footer');
+    }
+
+    // Menampilkan katalog
+    public function katalog() {
+        $data['title'] = 'Katalog Layanan';
+        
+        // Mendapatkan semua katalog dari model
+        $data['catalogues'] = $this->Catalogue_model->get_all();
+
+        // Menampilkan halaman katalog
+        $this->load->view('templates/header', $data);
+        $this->load->view('user/katalog', $data);  // Halaman katalog
+        $this->load->view('templates/footer');
+    }
+}
+
+## update models/Catalogue.php
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+
+class Catalogue_model extends CI_Model {
+
+    // Mendapatkan semua katalog
+    public function get_all() {
+        return $this->db->order_by('created_at', 'DESC')->get('tb_catalogues')->result();
+    }
+
+    // Mendapatkan katalog berdasarkan ID
+    public function get($id) {
+        return $this->db->get_where('tb_catalogues', ['catalogue_id' => $id])->row();
+    }
+
+    // Menambah data katalog
+    public function insert($data) {
+        return $this->db->insert('tb_catalogues', $data);
+    }
+
+    // Update data katalog
+    public function update($id, $data) {
+        return $this->db->where('catalogue_id', $id)->update('tb_catalogues', $data);
+    }
+
+    // Hapus data katalog
+    public function delete($id) {
+        return $this->db->delete('tb_catalogues', ['catalogue_id' => $id]);
+    }
+}
+
+
+## tambahkan blok code pada views/user/home.php:
+<!-- Menampilkan katalog -->
+<div class="row text-center mt-4">
+    <?php foreach ($catalogues as $catalogue): ?>
+
+        <div class="col-md-4">
+            <div class="border p-3">
+                <h5><?= $catalogue->package_name ?></h5>
+                <p><?= $catalogue->description ?></p>
+                <p><strong>Rp <?= number_format($catalogue->price, 0, ',', '.') ?></strong></p>
+            </div>
+        </div>
+    <?php endforeach; ?>
+
+</div>
