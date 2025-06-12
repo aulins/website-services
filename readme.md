@@ -60,3 +60,29 @@ $autoload['helper'] = array('url', 'form');
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+
+# Buat Controller Awal & Landing Page
+
+1. application/controllers/User.php:
+
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+
+class User extends CI_Controller {
+
+  public function index() {
+    $data['title'] = 'Beranda';
+    $this->load->view('templates/header', $data);
+    $this->load->view('user/home');
+    $this->load->view('templates/footer');
+  }
+}
+
+2. application/views/user/home.php:
+
+<h1 class="text-center">Pembuatan Website Profesional</h1>
+<div class="row text-center mt-4">
+  <div class="col-md-4"><div class="border p-3">Katalog 1</div></div>
+  <div class="col-md-4"><div class="border p-3">Katalog 2</div></div>
+  <div class="col-md-4"><div class="border p-3">Katalog 3</div></div>
+</div>
