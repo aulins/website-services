@@ -19,4 +19,12 @@ class Review_model extends CI_Model {
     public function approve($id) {
         return $this->db->where('review_id', $id)->update('tb_reviews', ['is_approved' => 'Y']);
     }
+
+    public function get_approved() {
+        $this->db->select('r.name, r.rating, r.comment');
+        $this->db->from('tb_reviews r');
+        $this->db->where('is_approved', 'Y');
+        $this->db->order_by('created_at', 'DESC');
+        return $this->db->get()->result();
+    }
 }
