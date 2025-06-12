@@ -1537,3 +1537,116 @@ VALUES ('Website XYZ', '1234567890', 'contact@xyz.com', 'Street XYZ', 'Google Ma
 ## testing
 
 http://localhost/website_services/contact
+
+# Memperbaiki Responsivitas dan Sidebar
+
+## update application/views/templates/admin_header.php
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title><?= $title ?? 'Admin Dashboard' ?></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            display: flex;
+        }
+        aside {
+            width: 220px;
+            min-height: 100vh;
+            background: #f8f9fa;
+        }
+        main {
+            flex: 1;
+            padding: 20px;
+        }
+        .nav-link.active {
+            font-weight: bold;
+            color: #0d6efd !important;
+        }
+    </style>
+</head>
+<body>
+<aside class="p-3">
+    <h4>Admin Panel</h4>
+    <nav class="nav flex-column">
+        <a class="nav-link <?= uri_string() == 'admin' ? 'active' : '' ?>" href="<?= base_url('admin') ?>">Dashboard</a>
+        <a class="nav-link" href="#">Katalog</a>
+        <a class="nav-link" href="#">Pesanan</a>
+        <a class="nav-link" href="#">Laporan</a>
+        <a class="nav-link" href="#">Ulasan</a>
+        <a class="nav-link text-danger" href="<?= base_url('logout') ?>">Logout</a>
+    </nav>
+</aside>
+<main>
+
+## update admin_footerphp
+
+</main>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="<?= base_url('assets/js/sidebar.js') ?>"></script>
+</body>
+</html>
+
+## buat application/assets/css/style.css:
+
+/_ Style untuk sidebar _/
+.sidebar {
+background-color: #f8f9fa;
+padding-top: 20px;
+height: 100vh;
+position: fixed;
+top: 0;
+left: 0;
+width: 250px;
+z-index: 1000;
+}
+
+/_ Style untuk main content _/
+.main-content {
+margin-left: 250px;
+padding: 20px;
+}
+
+/_ Sidebar Toggle untuk mobile _/
+@media (max-width: 768px) {
+.sidebar {
+position: absolute;
+left: -250px;
+width: 250px;
+transition: left 0.3s ease;
+}
+
+.sidebar.active {
+left: 0;
+}
+
+.main-content {
+margin-left: 0;
+}
+}
+
+/_ Style untuk tombol menu pada mobile _/
+#menu-toggle {
+display: none;
+}
+
+/_ Menampilkan tombol menu pada layar kecil _/
+@media (max-width: 768px) {
+#menu-toggle {
+display: block;
+background-color: #007bff;
+color: white;
+padding: 10px;
+border: none;
+cursor: pointer;
+}
+}
+
+## bikin sidebar.js
+
+// Menangani tombol menu untuk responsive sidebar
+document.getElementById("menu-toggle").addEventListener("click", function () {
+document.querySelector(".sidebar").classList.toggle("active");
+});

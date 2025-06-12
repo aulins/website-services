@@ -28,10 +28,10 @@
         <h4>Admin Panel</h4>
         <nav class="nav flex-column">
         <a class="nav-link <?= uri_string() == 'admin' ? 'active' : '' ?>" href="<?= base_url('admin') ?>">Dashboard</a>
-        <a class="nav-link" href="#">Katalog</a>
-        <a class="nav-link" href="#">Pesanan</a>
-        <a class="nav-link" href="#">Laporan</a>
-        <a class="nav-link" href="#">Ulasan</a>
+        <a class="nav-link" href="<?= base_url('catalogue') ?>">Katalog</a>
+        <a class="nav-link" href="orderadmin">Pesanan</a>
+        <a class="nav-link" href="reportadmin">Laporan</a>
+        <a class="nav-link" href="reviewadmin">Ulasan</a>
         <a class="nav-link text-danger" href="<?= base_url('logout') ?>">Logout</a>
         </nav>
     </aside>

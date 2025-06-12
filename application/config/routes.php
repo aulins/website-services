@@ -52,17 +52,25 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 $route['default_controller'] = 'user';
 $route['login'] = 'auth/index';
 $route['logout'] = 'auth/logout';
+// Route untuk pemesanan pengguna
 $route['order/create'] = 'order/create';
 $route['order/store']  = 'order/store';
+// Route untuk daftar pesanan admin
 $route['orderadmin'] = 'orderadmin/index';
 $route['orderadmin/update_status/(:num)'] = 'orderadmin/update_status/$1';
+// Route untuk ulasan pengguna
 $route['review/create'] = 'review/create';
 $route['review/store']  = 'review/store';
+// Route untuk moderasi ulasan admin
 $route['reviewadmin']   = 'reviewadmin/index';
+$route['reviewadmin/approve/(:num)'] = 'reviewadmin/approve/$1';
 $route['user/katalog'] = 'user/katalog';
+// Route untuk laporan penjualan admin
 $route['reportadmin'] = 'reportadmin/index';
 $route['reportadmin/download_report'] = 'reportadmin/download_report';
-$route['reviewadmin/approve/(:num)'] = 'reviewadmin/approve/$1';
+// Route untuk halaman kontak
 $route['contact'] = 'contact/index';
+
+
 $route['404_override'] = '';
 $route['translate_uri_dashes'] = FALSE;
