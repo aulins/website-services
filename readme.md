@@ -86,3 +86,27 @@ class User extends CI_Controller {
   <div class="col-md-4"><div class="border p-3">Katalog 2</div></div>
   <div class="col-md-4"><div class="border p-3">Katalog 3</div></div>
 </div>
+
+# Setting database
+
+1. buka /application/config/database.php:
+
+$db['default'] = array(
+    'dsn'   => '',
+    'hostname' => 'localhost',
+    'username' => 'root',
+    'password' => '',                 // XAMPP default biasanya kosong
+    'database' => 'jasa_website',     // ← ganti dengan nama database kamu
+    'dbdriver' => 'mysqli',
+    'dbprefix' => '',
+    'pconnect' => FALSE,
+    'db_debug' => (ENVIRONMENT !== 'production'),
+    ...
+);
+
+
+# Routing halaman awal
+
+1. Buka: /application/config/routes.php:
+
+$route['default_controller'] = 'user';
