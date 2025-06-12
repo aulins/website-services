@@ -54,5 +54,7 @@ $route['login'] = 'auth/index';
 $route['logout'] = 'auth/logout';
 $route['order/create'] = 'order/create';
 $route['order/store']  = 'order/store';
+$route['orderadmin'] = 'orderadmin/index';
+$route['orderadmin/update_status/(:num)'] = 'orderadmin/update_status/$1';
 $route['404_override'] = '';
 $route['translate_uri_dashes'] = FALSE;
