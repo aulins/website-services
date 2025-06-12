@@ -13,8 +13,10 @@ class Review extends CI_Controller {
         $data['title'] = 'Form Ulasan';
         $data['orders'] = $this->db->get_where('tb_orders', ['status' => 'completed'])->result(); // hanya yang selesai
 
+        $data['reviews'] = $this->Review_model->get_approved();  // Ambil ulasan yang disetujui
         $this->load->view('templates/header', $data);
         $this->load->view('user/review_form', $data);
+
         $this->load->view('templates/footer');
     }
 
@@ -32,4 +34,7 @@ class Review extends CI_Controller {
         $this->session->set_flashdata('success', 'Ulasan berhasil dikirim dan menunggu persetujuan admin.');
         redirect('review/create');
     }
+
+
+
 }

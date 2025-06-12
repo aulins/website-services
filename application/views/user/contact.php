@@ -2,7 +2,7 @@
 
 <div class="card">
     <div class="card-body">
-        <h5 class="card-title"><?= $settings->website_name ?></h5>
+        <h5 class="card-title" style="color:rgb(10, 97, 106);"><strong><?= $settings->website_name ?></strong></h5>
         <p><strong>Telepon:</strong> <?= $settings->phone_number1 ?></p>
         <p><strong>Email:</strong> <?= $settings->email1 ?></p>
         <p><strong>Alamat:</strong> <?= $settings->address ?></p>

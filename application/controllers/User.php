@@ -15,8 +15,8 @@ class User extends CI_Controller {
         $data['title'] = 'Beranda';
         
         // Mendapatkan data katalog dari model
-        $data['catalogues'] = $this->Catalogue_model->get_all();  // Ambil semua data katalog
-        $data['reviews'] = $this->Review_model->get_approved();  // Ambil ulasan yang disetujui
+        // $data['catalogues'] = $this->Catalogue_model->get_all();  // Ambil semua data katalog
+        // $data['reviews'] = $this->Review_model->get_approved();  // Ambil ulasan yang disetujui
 
         // Memuat header, konten utama, dan footer
         $this->load->view('templates/header', $data);

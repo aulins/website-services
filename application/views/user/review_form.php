@@ -1,3 +1,20 @@
+
+<div class="row">
+    <h3 class="mt-5 mb-5">Ulasan Pengguna</h3>
+                        <div class="row">
+                            <?php foreach ($reviews as $review): ?>
+                                <div class="col">
+                                    <div class="border p-3 mb-3 rounded shadow-sm">
+                                        <strong><?= $review->name ?></strong><br>
+                                        Rating: <?= str_repeat('⭐', $review->rating) ?><br>
+                                        <p><?= $review->comment ?></p>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+
+</div>
+<div class="row-12">
 <h2>Form Ulasan</h2>
 
 <?php if ($this->session->flashdata('success')): ?>
@@ -28,3 +45,5 @@
     </div>
     <button class="btn btn-primary">Kirim Ulasan</button>
 </form>
+
+</div>
