@@ -101,7 +101,17 @@ class Catalogue extends CI_Controller {
     }
 
     public function delete($id) {
-        $this->Catalogue_model->delete($id);
+        // Cek apakah katalog masih digunakan di pesanan
+        $order_exists = $this->db->get_where('tb_orders', ['catalogue_id' => $id])->num_rows();
+    
+        if ($order_exists > 0) {
+            $this->session->set_flashdata('error', 'Katalog tidak bisa dihapus karena sudah digunakan dalam pesanan.');
+        } else {
+            $this->Catalogue_model->delete($id);
+            $this->session->set_flashdata('success', 'Katalog berhasil dihapus.');
+        }
+    
         redirect('catalogue');
     }
+    
 }

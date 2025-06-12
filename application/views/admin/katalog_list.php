@@ -1,3 +1,11 @@
+<?php if ($this->session->flashdata('error')): ?>
+    <div class="alert alert-danger"><?= $this->session->flashdata('error') ?></div>
+    <?php endif; ?>
+    <?php if ($this->session->flashdata('success')): ?>
+    <div class="alert alert-success"><?= $this->session->flashdata('success') ?></div>
+<?php endif; ?>
+
+
 <h3>Daftar Katalog</h3>
 <a href="<?= base_url('catalogue/create') ?>" class="btn btn-primary mb-3">Tambah Katalog</a>
 <table class="table table-bordered">

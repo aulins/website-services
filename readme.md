@@ -1747,3 +1747,33 @@ class Catalogue_model extends CI_Model {
     <?php endforeach; ?>
 
 </div>
+
+# fitur hapus katalog
+
+## tambahkan di Catalogue.php
+
+methode delete di aupdate:
+
+public function delete($id) {
+// Cek apakah katalog masih digunakan di pesanan
+$order_exists = $this->db->get_where('tb_orders', ['catalogue_id' => $id])->num_rows();
+
+    if ($order_exists > 0) {
+        $this->session->set_flashdata('error', 'Katalog tidak bisa dihapus karena sudah digunakan dalam pesanan.');
+    } else {
+        $this->Catalogue_model->delete($id);
+        $this->session->set_flashdata('success', 'Katalog berhasil dihapus.');
+    }
+
+    redirect('catalogue');
+
+}
+
+## tambahkan pesan flash di view/admin/katalog_list.php
+
+<?php if ($this->session->flashdata('error')): ?>
+  <div class="alert alert-danger"><?= $this->session->flashdata('error') ?></div>
+<?php endif; ?>
+<?php if ($this->session->flashdata('success')): ?>
+  <div class="alert alert-success"><?= $this->session->flashdata('success') ?></div>
+<?php endif; ?>
