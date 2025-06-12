@@ -915,3 +915,203 @@ http://localhost/website_services/orderadmin
 🟢 Tampil daftar pesanan
 🟢 Klik dropdown status → pilih → klik Update
 🟢 Perubahan langsung tersimpan ke tb_orders
+
+# Fitur Ulasan User
+
+Pengguna bisa mengirimkan ulasan + rating
+Ulasan disimpan di tb_reviews dengan status is_approved = 'N'
+Admin bisa melihat dan menyetujui (Y) agar ulasan tampil ke publik
+
+## struktur folder
+
+application/
+├── controllers/
+│ ├── Review.php ← form user
+│ └── ReviewAdmin.php ← moderasi admin
+├── models/
+│ └── Review_model.php ← akses ke tb_reviews
+├── views/
+│ ├── user/
+│ │ └── review_form.php ← form tambah ulasan
+│ └── admin/
+│ └── review_list.php ← daftar ulasan untuk admin
+
+## buat model application/models/Review_model.php:
+
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+
+class Review_model extends CI_Model {
+
+  public function insert($data) {
+    return $this->db->insert('tb_reviews', $data);
+  }
+
+  public function get_all() {
+    $this->db->select('r.*, o.name AS pemesan, c.package_name');
+    $this->db->from('tb_reviews r');
+    $this->db->join('tb_orders o', 'o.order_id = r.order_id');
+    $this->db->join('tb_catalogues c', 'c.catalogue_id = o.catalogue_id');
+    $this->db->order_by('r.created_at', 'DESC');
+    return $this->db->get()->result();
+  }
+
+  public function approve($id) {
+    return $this->db->where('review_id', $id)->update('tb_reviews', ['is_approved' => 'Y']);
+  }
+}
+
+## buat controller application/controllers/Review.php:
+
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+
+class Review extends CI_Controller {
+
+  public function __construct() {
+    parent::__construct();
+    $this->load->model('Review_model');
+    $this->load->database();
+  }
+
+  public function create() {
+    $data['title'] = 'Form Ulasan';
+    $data['orders'] = $this->db->get_where('tb_orders', ['status' => 'completed'])->result(); // hanya yang selesai
+
+    $this->load->view('templates/header', $data);
+    $this->load->view('user/review_form', $data);
+    $this->load->view('templates/footer');
+  }
+
+  public function store() {
+    $data = [
+      'order_id'    => $this->input->post('order_id'),
+      'name'        => $this->input->post('name'),
+      'rating'      => $this->input->post('rating'),
+      'comment'     => $this->input->post('comment'),
+      'is_approved' => 'N',
+      'created_at'  => date('Y-m-d H:i:s')
+    ];
+
+    $this->Review_model->insert($data);
+    $this->session->set_flashdata('success', 'Ulasan berhasil dikirim dan menunggu persetujuan admin.');
+    redirect('review/create');
+  }
+}
+
+## buat view application/views/user/review_form.php:
+
+<h2>Form Ulasan</h2>
+
+<?php if ($this->session->flashdata('success')): ?>
+  <div class="alert alert-success"><?= $this->session->flashdata('success') ?></div>
+<?php endif; ?>
+
+<form method="post" action="<?= base_url('review/store') ?>">
+  <div class="mb-3">
+    <label>Nama Anda</label>
+    <input type="text" name="name" class="form-control" required>
+  </div>
+  <div class="mb-3">
+    <label>Pilih Pesanan</label>
+    <select name="order_id" class="form-control" required>
+      <option value="">-- Pilih Paket --</option>
+      <?php foreach ($orders as $o): ?>
+        <option value="<?= $o->order_id ?>"><?= $o->name ?> - <?= $o->project_deadline ?></option>
+      <?php endforeach ?>
+    </select>
+  </div>
+  <div class="mb-3">
+    <label>Rating (1 - 5)</label>
+    <input type="number" name="rating" min="1" max="5" class="form-control" required>
+  </div>
+  <div class="mb-3">
+    <label>Ulasan</label>
+    <textarea name="comment" class="form-control" required></textarea>
+  </div>
+  <button class="btn btn-primary">Kirim Ulasan</button>
+</form>
+
+## buat controller application/controllers/ReviewAdmin.php:
+
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+
+class ReviewAdmin extends CI_Controller {
+
+  public function __construct() {
+    parent::__construct();
+    if (!$this->session->userdata('user_id')) {
+      redirect('login');
+    }
+    $this->load->model('Review_model');
+  }
+
+  public function index() {
+    $data['title'] = 'Moderasi Ulasan';
+    $data['reviews'] = $this->Review_model->get_all();
+
+    $this->load->view('templates/admin_header', $data);
+    $this->load->view('admin/review_list', $data);
+    $this->load->view('templates/admin_footer');
+  }
+
+  public function approve($id) {
+    $this->Review_model->approve($id);
+    redirect('reviewadmin');
+  }
+}
+
+## buat view application/views/admin/review_list.php:
+<h3>Moderasi Ulasan</h3>
+
+<table class="table table-bordered">
+  <thead>
+    <tr>
+      <th>Nama</th>
+      <th>Paket</th>
+      <th>Rating</th>
+      <th>Ulasan</th>
+      <th>Status</th>
+      <th>Aksi</th>
+    </tr>
+  </thead>
+  <tbody>
+    <?php foreach ($reviews as $r): ?>
+
+    <tr>
+      <td><?= $r->name ?></td>
+      <td><?= $r->package_name ?></td>
+      <td><?= $r->rating ?></td>
+      <td><?= $r->comment ?></td>
+      <td><?= $r->is_approved == 'Y' ? 'Disetujui' : 'Menunggu' ?></td>
+      <td>
+        <?php if ($r->is_approved == 'N'): ?>
+          <a href="<?= base_url('reviewadmin/approve/'.$r->review_id) ?>" class="btn btn-sm btn-success">Setujui</a>
+        <?php else: ?>
+          <span class="text-success">✔</span>
+        <?php endif ?>
+      </td>
+    </tr>
+    <?php endforeach ?>
+
+  </tbody>
+</table>
+
+## tambah routing application/config/routes.php:
+
+$route['review/create'] = 'review/create';
+$route['review/store'] = 'review/store';
+$route['reviewadmin']   = 'reviewadmin/index';
+$route['reviewadmin/approve/(:num)'] = 'reviewadmin/approve/$1';
+
+## testing
+
+Buka: http://localhost/website_services/review/create → isi form → kirim
+Buka: http://localhost/website_services/reviewadmin → lihat ulasan → klik “Setujui”
+
+Jika berhasil:
+
+✅ Ulasan tersimpan
+✅ Admin bisa menyetujui
+✅ Disiapkan untuk ditampilkan ke halaman user (fitur berikutnya)
