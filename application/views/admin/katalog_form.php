@@ -7,11 +7,27 @@
     <div class="mb-3">
         <label>Kategori</label>
         <select name="categories" class="form-control" required>
-        <option value="Toko Online" <?= (isset($katalog) && $katalog->categories == 'Toko Online') ? 'selected' : '' ?>>Toko Online</option>
-        <option value="Perusahaan" <?= (isset($katalog) && $katalog->categories == 'Perusahaan') ? 'selected' : '' ?>>Perusahaan</option>
-        <option value="Custom" <?= (isset($katalog) && $katalog->categories == 'Custom') ? 'selected' : '' ?>>Custom</option>
+            <?php
+            $opsi = [
+                'Toko online (e-Commerce)',
+                'Company Profile',
+                'Personal Profile Website',
+                'Wedding',
+                'Web3 / Blockchain Project',
+                'Blog / Artikel Pribadi',
+                'Landing Page',
+                'Portfolio',
+                'Kursus Online (e-Learning)',
+                'Custom'
+            ];
+            foreach ($opsi as $kategori) {
+                $selected = (isset($katalog) && $katalog->categories == $kategori) ? 'selected' : '';
+                echo "<option value=\"$kategori\" $selected>$kategori</option>";
+            }
+            ?>
         </select>
     </div>
+
     <div class="mb-3">
         <label>Deskripsi</label>
         <textarea name="description" class="form-control"><?= $katalog->description ?? '' ?></textarea>

@@ -599,3 +599,51 @@ application/views/admin/katalog_form.php:
 Akses: http://localhost/website_services/catalogue
 Tambah, edit, hapus katalog
 Data langsung masuk ke tabel tb_catalogues
+
+# menambahkan dropdown kategori agar lebih bervariasi
+
+## ubah struktur ENUM di tb_catalogue
+
+jalan di SQL di phpMyAdmin:
+
+ALTER TABLE tb_catalogues
+MODIFY categories ENUM(
+'Toko online (e-Commerce)',
+'Company Profile',
+'Personal Profile Website',
+'Wedding',
+'Web3 / Blockchain Project',
+'Blog / Artikel Pribadi',
+'Landing Page',
+'Portfolio',
+'Kursus Online (e-Learning)',
+'Custom'
+) NOT NULL;
+
+## Update katalog_form.php
+
+Ganti bagian dropdown <select name="categories"> menjadi:
+
+<div class="mb-3">
+  <label>Kategori</label>
+  <select name="categories" class="form-control" required>
+    <?php
+      $opsi = [
+        'Toko online (e-Commerce)',
+        'Company Profile',
+        'Personal Profile Website',
+        'Wedding',
+        'Web3 / Blockchain Project',
+        'Blog / Artikel Pribadi',
+        'Landing Page',
+        'Portfolio',
+        'Kursus Online (e-Learning)',
+        'Custom'
+      ];
+      foreach ($opsi as $kategori) {
+        $selected = (isset($katalog) && $katalog->categories == $kategori) ? 'selected' : '';
+        echo "<option value=\"$kategori\" $selected>$kategori</option>";
+      }
+    ?>
+  </select>
+</div>
