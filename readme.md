@@ -1285,3 +1285,173 @@ Tambah katalog baru → upload gambar → Submit
 Cek folder uploads/catalogue/
 Lihat halaman katalog user di:
 http://localhost/website_services/user/katalog
+
+# fitur laporan penjualan & download laporan untuk admin
+
+Admin bisa melihat rekap pendapatan dan pesanan dalam rentang tanggal tertentu.
+Admin bisa mendownload laporan dalam format .csv.
+
+## struktur folder
+
+application/
+├── controllers/
+│ └── ReportAdmin.php ← controller untuk laporan
+├── models/
+│ └── Report_model.php ← model untuk query laporan
+├── views/
+│ └── admin/
+│ └── report_list.php ← halaman daftar laporan
+
+## buat model application/models/Report_model.php:
+
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+
+class Report_model extends CI_Model {
+
+    public function get_order_report($start_date, $end_date) {
+        // Join tb_orders dengan tb_catalogues untuk mendapatkan harga paket
+        $this->db->select('tb_orders.order_id, tb_orders.name, tb_catalogues.price, tb_orders.created_at');
+        $this->db->from('tb_orders');
+        $this->db->join('tb_catalogues', 'tb_orders.catalogue_id = tb_catalogues.catalogue_id');
+        $this->db->where('tb_orders.status', 'completed');
+        $this->db->where('tb_orders.created_at >=', $start_date);
+        $this->db->where('tb_orders.created_at <=', $end_date);
+        
+        return $this->db->get()->result();
+    }      
+
+    public function get_sales_report($start_date, $end_date) {
+        $this->db->select('SUM(tb_catalogues.price) AS total_sales, COUNT(tb_orders.order_id) AS total_orders');
+        $this->db->from('tb_orders');
+        $this->db->join('tb_catalogues', 'tb_orders.catalogue_id = tb_catalogues.catalogue_id');
+        $this->db->where('tb_orders.status', 'completed');
+        $this->db->where('tb_orders.created_at >=', $start_date);
+        $this->db->where('tb_orders.created_at <=', $end_date);
+        return $this->db->get()->row();
+    }
+}
+
+## buat controller application/controllers/ReportAdmin.php:
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+
+class ReportAdmin extends CI_Controller {
+
+  public function __construct() {
+    parent::__construct();
+    if (!$this->session->userdata('user_id')) {
+      redirect('login');
+    }
+    $this->load->model('Report_model');
+    $this->load->helper('date');
+  }
+
+  public function index() {
+    $data['title'] = 'Laporan Penjualan';
+
+    // Ambil tanggal mulai dan selesai
+    $start_date = $this->input->post('start_date') ? $this->input->post('start_date') : date('Y-m-01');
+    $end_date = $this->input->post('end_date') ? $this->input->post('end_date') : date('Y-m-t');
+
+    // Ambil laporan penjualan dan pesanan
+    $data['sales_report'] = $this->Report_model->get_sales_report($start_date, $end_date);
+    $data['order_report'] = $this->Report_model->get_order_report($start_date, $end_date);
+    $data['start_date'] = $start_date;
+    $data['end_date'] = $end_date;
+
+    $this->load->view('templates/admin_header', $data);
+    $this->load->view('admin/report_list', $data);
+    $this->load->view('templates/admin_footer');
+  }
+
+  public function download_report() {
+    $start_date = $this->input->post('start_date');
+    $end_date = $this->input->post('end_date');
+
+    // Ambil laporan pesanan
+    $report_data = $this->Report_model->get_order_report($start_date, $end_date);
+
+    // Membuat file CSV
+    $filename = 'laporan_penjualan_' . date('YmdHis') . '.csv';
+    header('Content-Type: text/csv');
+    header('Content-Disposition: attachment; filename="' . $filename . '"');
+
+    $output = fopen('php://output', 'w');
+    fputcsv($output, ['Order ID', 'Nama Pemesan', 'Harga', 'Tanggal Pesanan']);
+    foreach ($report_data as $row) {
+      fputcsv($output, [$row->order_id, $row->name, $row->price, $row->created_at]);
+    }
+    fclose($output);
+    exit();
+  }
+}
+
+## buat view application/views/admin/report_list.php:
+<h3>Laporan Penjualan</h3>
+
+<form method="post" action="<?= base_url('reportadmin') ?>">
+  <div class="row">
+    <div class="col-md-3">
+      <label>Tanggal Mulai</label>
+      <input type="date" name="start_date" class="form-control" value="<?= $start_date ?>" required>
+    </div>
+    <div class="col-md-3">
+      <label>Tanggal Selesai</label>
+      <input type="date" name="end_date" class="form-control" value="<?= $end_date ?>" required>
+    </div>
+    <div class="col-md-3">
+      <button type="submit" class="btn btn-primary mt-4">Tampilkan Laporan</button>
+    </div>
+  </div>
+</form>
+
+<hr>
+
+<h4>Rekap Penjualan</h4>
+<p>Total Pesanan: <?= $sales_report->total_orders ?></p>
+<p>Total Pendapatan: Rp <?= number_format($sales_report->total_sales, 0, ',', '.') ?></p>
+
+<hr>
+
+<h4>Daftar Pesanan</h4>
+<table class="table table-bordered">
+  <thead>
+    <tr>
+      <th>Order ID</th>
+      <th>Nama Pemesan</th>
+      <th>Harga</th>
+      <th>Tanggal Pesanan</th>
+    </tr>
+  </thead>
+  <tbody>
+    <?php foreach ($order_report as $order): ?>
+    <tr>
+      <td><?= $order->order_id ?></td>
+      <td><?= $order->name ?></td>
+      <td>Rp <?= number_format($order->price, 0, ',', '.') ?></td>
+      <td><?= $order->created_at ?></td>
+    </tr>
+    <?php endforeach; ?>
+  </tbody>
+</table>
+
+<hr>
+
+<form method="post" action="<?= base_url('reportadmin/download_report') ?>" class="d-flex">
+  <input type="hidden" name="start_date" value="<?= $start_date ?>">
+  <input type="hidden" name="end_date" value="<?= $end_date ?>">
+  <button type="submit" class="btn btn-success">Download Laporan</button>
+</form>
+
+## tambahkan routing application/config/routes.php:
+
+$route['reportadmin'] = 'reportadmin/index';
+$route['reportadmin/download_report'] = 'reportadmin/download_report';
+
+## testing
+
+http://localhost/website_services/reportadmin
+
+Pilih rentang tanggal → tampilkan laporan
+Coba download laporan (format CSV)
