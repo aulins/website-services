@@ -1777,3 +1777,47 @@ $order_exists = $this->db->get_where('tb_orders', ['catalogue_id' => $id])->num_
 <?php if ($this->session->flashdata('success')): ?>
   <div class="alert alert-success"><?= $this->session->flashdata('success') ?></div>
 <?php endif; ?>
+
+# menampilkan total jumlah katalog di halaman dashboard.php
+
+## update method public index controller/Admin.php:
+
+public function index() {
+// Jumlah pesanan selesai bulan ini
+$this->db->where('status', 'completed');
+$this->db->where('MONTH(created_at)', date('m'));
+$this->db->where('YEAR(created_at)', date('Y'));
+$pesanan_selesai = $this->db->count_all_results('tb_orders');
+
+    // Total pendapatan bulan ini
+    $this->db->select_sum('tb_catalogues.price');
+    $this->db->from('tb_orders');
+    $this->db->join('tb_catalogues', 'tb_catalogues.catalogue_id = tb_orders.catalogue_id');
+    $this->db->where('tb_orders.status', 'completed');
+    $this->db->where('MONTH(tb_orders.created_at)', date('m'));
+    $this->db->where('YEAR(tb_orders.created_at)', date('Y'));
+    $result = $this->db->get()->row();
+    $pendapatan = $result->price ?? 0;
+
+    // Total katalog
+    $total_katalog = $this->db->count_all('tb_catalogues');
+
+    $data['title'] = 'Dashboard Admin';
+    $data['pesanan_selesai'] = $pesanan_selesai;
+    $data['pendapatan'] = $pendapatan;
+    $data['total_katalog'] = $total_katalog;
+
+    $this->load->view('templates/admin_header', $data);
+    $this->load->view('admin/dashboard', $data);
+    $this->load->view('templates/admin_footer');
+
+}
+
+## tambahkan blok kode view/admin/dashboar.php
+
+<div class="col-md-6">
+    <div class="bg-info text-white p-4 rounded">
+        <h5>Total Katalog Tersedia</h5>
+        <h2><?= $total_katalog ?></h2>
+    </div>
+</div>
