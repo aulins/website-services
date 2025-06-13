@@ -1866,3 +1866,35 @@ return $this->db->get()->result();
 ## update controller/ReporAdmin.php
 
 bagian method download_report()
+
+# Fixing file CSV (download)
+
+application/ReportAdmin.php di method download_report():
+public function download_report() {
+$start_date = $this->input->post('start_date');
+$end_date = $this->input->post('end_date');
+
+    $report_data = $this->Report_model->get_order_report($start_date, $end_date);
+
+    $filename = 'laporan_penjualan_' . date('YmdHis') . '.csv';
+    header('Content-Type: text/csv');
+    header('Content-Disposition: attachment; filename="' . $filename . '"');
+
+    $output = fopen('php://output', 'w');
+    fputcsv($output, ['Order ID', 'Nama Pemesan', 'Nama Paket', 'Kategori', 'Harga', 'Tanggal Pesanan']);
+
+    foreach ($report_data as $row) {
+        fputcsv($output, [
+            $row->order_id,
+            $row->name,
+            $row->package_name,
+            $row->categories,
+            $row->price,
+            $row->created_at
+        ]);
+    }
+
+    fclose($output);
+    exit();
+
+}

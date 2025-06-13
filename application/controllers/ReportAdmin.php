@@ -33,21 +33,29 @@ class ReportAdmin extends CI_Controller {
     public function download_report() {
         $start_date = $this->input->post('start_date');
         $end_date = $this->input->post('end_date');
-
-        // Ambil laporan pesanan
+    
         $report_data = $this->Report_model->get_order_report($start_date, $end_date);
-
-        // Membuat file CSV
+    
         $filename = 'laporan_penjualan_' . date('YmdHis') . '.csv';
         header('Content-Type: text/csv');
         header('Content-Disposition: attachment; filename="' . $filename . '"');
-
+    
         $output = fopen('php://output', 'w');
-        fputcsv($output, ['Order ID', 'Nama Pemesan', 'Nama Pemesanan', 'Kategori','Harga', 'Tanggal Pesanan']);
+        fputcsv($output, ['Order ID', 'Nama Pemesan', 'Nama Paket', 'Kategori', 'Harga', 'Tanggal Pesanan']);
+        
         foreach ($report_data as $row) {
-        fputcsv($output, [$row->order_id, $row->name, $row->price, $row->created_at]);
+            fputcsv($output, [
+                $row->order_id,
+                $row->name,
+                $row->package_name,
+                $row->categories,
+                $row->price,
+                $row->created_at
+            ]);
         }
+        
         fclose($output);
         exit();
     }
+    
 }
