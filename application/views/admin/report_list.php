@@ -28,22 +28,27 @@
         <table class="table table-bordered">
         <thead>
             <tr>
-            <th>Order ID</th>
-            <th>Nama Pemesan</th>
-            <th>Harga</th>
-            <th>Tanggal Pesanan</th>
+                <th>Order ID</th>
+                <th>Nama Pemesan</th>
+                <th>Nama Paket</th>
+                <th>Kategori</th>
+                <th>Harga</th>
+                <th>Tanggal Pesanan</th>
             </tr>
         </thead>
         <tbody>
             <?php foreach ($order_report as $order): ?>
-            <tr>
-            <td><?= $order->order_id ?></td>
-            <td><?= $order->name ?></td>
-            <td>Rp <?= number_format($order->price, 0, ',', '.') ?></td>
-            <td><?= $order->created_at ?></td>
-            </tr>
+                <tr>
+                    <td><?= $order->order_id ?></td>
+                    <td><?= $order->name ?></td>
+                    <td><?= $order->package_name ?></td>
+                    <td><?= $order->categories ?></td>
+                    <td>Rp <?= number_format($order->price, 0, ',', '.') ?></td>
+                    <td><?= $order->created_at ?></td>
+                </tr>
             <?php endforeach; ?>
         </tbody>
+
         </table>
 
         <hr>

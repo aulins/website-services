@@ -43,7 +43,7 @@ class ReportAdmin extends CI_Controller {
         header('Content-Disposition: attachment; filename="' . $filename . '"');
 
         $output = fopen('php://output', 'w');
-        fputcsv($output, ['Order ID', 'Nama Pemesan', 'Harga', 'Tanggal Pesanan']);
+        fputcsv($output, ['Order ID', 'Nama Pemesan', 'Nama Pemesanan', 'Kategori','Harga', 'Tanggal Pesanan']);
         foreach ($report_data as $row) {
         fputcsv($output, [$row->order_id, $row->name, $row->price, $row->created_at]);
         }

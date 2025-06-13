@@ -1821,3 +1821,48 @@ $pesanan_selesai = $this->db->count_all_results('tb_orders');
         <h2><?= $total_katalog ?></h2>
     </div>
 </div>
+
+# menambahkan / equi join kolom package_name dan categories pada halaman laporan
+
+application/models/Report_model.php:
+
+## update blok kode get_order_report:
+
+public function get_order_report($start_date, $end_date) {
+$this->db->select('tb_orders.order_id, tb_orders.name, tb_catalogues.package_name, tb_catalogues.categories, tb_catalogues.price, tb_orders.created_at');
+$this->db->from('tb_orders');
+$this->db->join('tb_catalogues', 'tb_orders.catalogue_id = tb_catalogues.catalogue_id');
+$this->db->where('tb_orders.status', 'completed');
+$this->db->where('tb_orders.created_at >=', $start_date);
+$this->db->where('tb_orders.created_at <=', $end_date);
+return $this->db->get()->result();
+}
+
+## update blok thead dan tbody nya menjadi
+
+<thead>
+    <tr>
+        <th>Order ID</th>
+        <th>Nama Pemesan</th>
+        <th>Nama Paket</th>
+        <th>Kategori</th>
+        <th>Harga</th>
+        <th>Tanggal Pesanan</th>
+    </tr>
+</thead>
+<tbody>
+    <?php foreach ($order_report as $order): ?>
+        <tr>
+            <td><?= $order->order_id ?></td>
+            <td><?= $order->name ?></td>
+            <td><?= $order->package_name ?></td>
+            <td><?= $order->categories ?></td>
+            <td>Rp <?= number_format($order->price, 0, ',', '.') ?></td>
+            <td><?= $order->created_at ?></td>
+        </tr>
+    <?php endforeach; ?>
+</tbody>
+
+## update controller/ReporAdmin.php
+
+bagian method download_report()
