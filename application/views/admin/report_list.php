@@ -33,6 +33,7 @@
                 <th>Nama Paket</th>
                 <th>Kategori</th>
                 <th>Harga</th>
+                <th>Deadline</th>
                 <th>Tanggal Pesanan</th>
             </tr>
         </thead>
@@ -44,6 +45,7 @@
                     <td><?= $order->package_name ?></td>
                     <td><?= $order->categories ?></td>
                     <td>Rp <?= number_format($order->price, 0, ',', '.') ?></td>
+                    <td><?= $order->project_deadline ?></td>
                     <td><?= $order->created_at ?></td>
                 </tr>
             <?php endforeach; ?>

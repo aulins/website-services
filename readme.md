@@ -1898,3 +1898,37 @@ $end_date = $this->input->post('end_date');
     exit();
 
 }
+
+# equi join tb_order untuk menambahkan kolom project_deadline
+
+update method get_order_report pada application/models/Report_model.php
+
+public function get_order_report($start_date, $end_date) {
+$this->db->select('
+tb_orders.order_id,
+tb_orders.name,
+tb_catalogues.package_name,
+tb_catalogues.categories,
+tb_catalogues.price,
+tb_orders.project_deadline,
+tb_orders.created_at
+');
+$this->db->from('tb_orders');
+$this->db->join('tb_catalogues', 'tb_orders.catalogue_id = tb_catalogues.catalogue_id');
+$this->db->where('tb_orders.status', 'completed');
+$this->db->where('tb_orders.created_at >=', $start_date);
+$this->db->where('tb_orders.created_at <=', $end_date);
+return $this->db->get()->result();
+}
+
+## tampilkan kolom dl di view
+
+tambahnakn di thead : <th>Deadline</th>
+
+tambahkan di tr : <td><?= $order->project_deadline ?></td>
+
+## tambahkan di csv
+
+controller/ReportAdmin.php di method download_report()
+di header tambahkan 'Deadline' dan output nya:
+$row->project_deadline,
